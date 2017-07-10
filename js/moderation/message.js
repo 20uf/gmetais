@@ -151,7 +151,7 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
         }
 
         this.reBindActions(data.id);
-        this.modalBindActions();
+        this.modalReBindActions(data.id);
 
     };
 
@@ -352,12 +352,25 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
     };
 
     /**
+     * Rebind actions on a single message.
+     *
+     * @param {Integer} messageId
+     */
+     ModerationMessage.prototype.modalReBindActions = function (messageId) {
+        this.modalBindActions(jQuery('.container-message[data-message-id=' + messageId + ']'));
+    };
+
+    /**
      * Bind actions for modal
      */
     ModerationMessage.prototype.modalBindActions = function () {
         var self = this;
 
-        jQuery('[data-modal="ajax"]').unbind('click').on('click', function (e) {
+        if (typeof $context === 'undefined') {
+            $context = jQuery('.container-message');
+        }
+
+        jQuery('[data-modal="ajax"]', $context).unbind('click').on('click', function (e) {
             e.preventDefault();
 
             var $this = jQuery(this);
