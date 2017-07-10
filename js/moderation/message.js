@@ -26,6 +26,9 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
     'use strict';
 
     var $section = jQuery('section.container-columns-workflow');
+    var slug = $section.data('broadcast-slug');
+    var $modalInfo = jQuery('#modal_info_message');
+
     const SOURCE_ID_FAVORITE = $section.data('const-source-favorite');
     const SOURCE_ID_SMS = $section.data('const-source-sms');
     const SOURCE_ID_MESSAGE_IMPORTED = $section.data('const-source-message-imported');
@@ -36,8 +39,7 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
      * @constructor
      */
     var ModerationMessage = function () {
-        this.slug = $section.data('broadcast-slug');
-        this.$modalInfo = jQuery('#modal_info_message');
+        this.slug = slug;
     };
 
     /**
@@ -274,8 +276,8 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
                     (new ModerationHeader()).templateMessageLeading(message);
                 })
                 .fail(function (jqXHR, textStatus, errorThrown) {
-                    self.$modalInfo.find('.modal-body').html(jqXHR.responseJSON);
-                    self.$modalInfo.modal();
+                    $modalInfo.find('.modal-body').html(jqXHR.responseJSON);
+                    $modalInfo.modal();
                 });
         });
 
