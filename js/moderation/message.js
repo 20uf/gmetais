@@ -169,7 +169,7 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
             var $messages = jQuery('.container-message', $column);
 
             if($messages.length >= messageMax) {
-                $messages.slice(messageMax).detach();
+                $messages.slice(messageMax).remove();
             }    
         }
 
