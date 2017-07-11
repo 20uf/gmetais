@@ -26,6 +26,9 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
     'use strict';
 
     var $section = jQuery('section.container-columns-workflow');
+    var slug = $section.data('broadcast-slug');
+    var $modalInfo = jQuery('#modal_info_message');
+
     const SOURCE_ID_FAVORITE = $section.data('const-source-favorite');
     const SOURCE_ID_SMS = $section.data('const-source-sms');
     const SOURCE_ID_MESSAGE_IMPORTED = $section.data('const-source-message-imported');
@@ -36,8 +39,7 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
      * @constructor
      */
     var ModerationMessage = function () {
-        this.slug = $section.data('broadcast-slug');
-        this.$modalInfo = jQuery('#modal_info_message');
+        this.slug = slug;
     };
 
     /**
@@ -62,11 +64,10 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
         var $html = jQuery(data.html);
         var $context = jQuery('.container-message[data-message-id=' + data.id + ']');
         var fromColumn = $context.parent('.container-messages').data('column');
-        var $iconFavorite = jQuery('i.favorite', $context);
-        var $iconTvOk = jQuery('.tv_ok', '.container-message[data-message-id=' + data.id + ']');
+        var isFavorite = $html.find('i.favorite').hasClass('on');
 
         // Remove unfavorite message
-        if (! $html.find('i.favorite').hasClass('on')) {
+        if (!isFavorite) {
             this.removeFavoriteMessage(data.id);
         }
 
@@ -82,30 +83,32 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
 
                     // Without Filters
                     if (filterSelected == "") {
-                        self.addMessage(data, $column);
+                        self.addMessage(data, $html, $column);
 
                         return;
                     }
 
                     // With Filters
-                    if ((filterSelected == $html.data('message-source')) || (filterSelected == SOURCE_ID_FAVORITE && $html.find('i.favorite').hasClass('on'))) {
-                        self.addMessage(data, $column);
+                    if ((filterSelected == $html.data('message-source')) || (filterSelected == SOURCE_ID_FAVORITE && isFavorite)) {
+                        self.addMessage(data, $html, $column);
 
                         return;
                     }
                 });
             } else {
-                self.addMessage(data);
+                self.addMessage(data, $html);
             }
         }
 
         // Toggle Favorite
+        var $iconFavorite = jQuery('i.favorite', $context);
         if ($html.find('i.favorite').attr('class') !== $iconFavorite.attr('class')) {
             $iconFavorite.attr('class', $html.find('i.favorite').attr('class'));
             return;
         }
 
         // Toggle TV_OK
+        var $iconTvOk = jQuery('.tv_ok', $context);
         if ($html.find('.tv_ok').attr('class') !== $iconTvOk.attr('class')) {
             $iconTvOk.attr('class', $html.find('.tv_ok').attr('class'));
             return;
@@ -148,7 +151,7 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
         }
 
         this.reBindActions(data.id);
-        this.modalBindActions();
+        this.modalReBindActions(data.id);
 
     };
 
@@ -158,7 +161,7 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
      * @param data
      * @param {jQuery} $column
      */
-    ModerationMessage.prototype.addMessage = function (data, $column) {
+    ModerationMessage.prototype.addMessage = function (data, $html, $column) {
         // Max messages displayed in incoming columns
         var messageMax = 200;
 
@@ -167,12 +170,11 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
             var $messages = jQuery('.container-message', $column);
 
             if($messages.length >= messageMax) {
-                $messages.slice(messageMax).detach();
+                $messages.slice(messageMax).remove();
             }    
         }
 
         // Add new messages on top of the columns
-        var $html = jQuery(data.html);
         jQuery('.container-messages[data-column='+data.column+']', $column).prepend($html);
     };
 
@@ -274,8 +276,8 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
                     (new ModerationHeader()).templateMessageLeading(message);
                 })
                 .fail(function (jqXHR, textStatus, errorThrown) {
-                    self.$modalInfo.find('.modal-body').html(jqXHR.responseJSON);
-                    self.$modalInfo.modal();
+                    $modalInfo.find('.modal-body').html(jqXHR.responseJSON);
+                    $modalInfo.modal();
                 });
         });
 
@@ -349,12 +351,25 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
     };
 
     /**
+     * Rebind actions on a single message.
+     *
+     * @param {Integer} messageId
+     */
+     ModerationMessage.prototype.modalReBindActions = function (messageId) {
+        this.modalBindActions(jQuery('.container-message[data-message-id=' + messageId + ']'));
+    };
+
+    /**
      * Bind actions for modal
      */
     ModerationMessage.prototype.modalBindActions = function () {
         var self = this;
 
-        jQuery('[data-modal="ajax"]').unbind('click').on('click', function (e) {
+        if (typeof $context === 'undefined') {
+            $context = jQuery('.container-message');
+        }
+
+        jQuery('[data-modal="ajax"]', $context).unbind('click').on('click', function (e) {
             e.preventDefault();
 
             var $this = jQuery(this);
