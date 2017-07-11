@@ -83,20 +83,20 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
 
                     // Without Filters
                     if (filterSelected == "") {
-                        self.addMessage(data, $column);
+                        self.addMessage(data, $html, $column);
 
                         return;
                     }
 
                     // With Filters
                     if ((filterSelected == $html.data('message-source')) || (filterSelected == SOURCE_ID_FAVORITE && isFavorite)) {
-                        self.addMessage(data, $column);
+                        self.addMessage(data, $html, $column);
 
                         return;
                     }
                 });
             } else {
-                self.addMessage(data);
+                self.addMessage(data, $html);
             }
         }
 
@@ -161,7 +161,7 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
      * @param data
      * @param {jQuery} $column
      */
-    ModerationMessage.prototype.addMessage = function (data, $column) {
+    ModerationMessage.prototype.addMessage = function (data, $html, $column) {
         // Max messages displayed in incoming columns
         var messageMax = 200;
 
@@ -175,7 +175,6 @@ window.Socialive.Moderation.Message = (function (jQuery, ModerationHeader, Moder
         }
 
         // Add new messages on top of the columns
-        var $html = jQuery(data.html);
         jQuery('.container-messages[data-column='+data.column+']', $column).prepend($html);
     };
 
